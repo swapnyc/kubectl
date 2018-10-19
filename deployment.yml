@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-deploy
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+  replicas: 5
+  minReadySeconds: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - name: wordpress-pod
+        image: wordpress:latest
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: 10.105.122.236:3306
+        - name: WORDPRESS_DB_USER
+          value: wordpress
+        - name: WORDPRESS_DB_PASSWORD
+          value: wordpress
+        ports:
+        - containerPort: 80
+---
+# declare a service object
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-svc
+  labels:
+    app: wordpress
+    env: prod
+# define and configure service to acces 80 port
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 32401
+    protocol: TCP
+  selector:
+    app: wordpress
